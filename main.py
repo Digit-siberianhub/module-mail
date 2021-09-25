@@ -1,7 +1,10 @@
 from time import sleep
-from service.yandex_mail import YandexMail
-import credentials.yandex as yd_cred
 import logging
+
+from service.yandex_mail import YandexMail
+from service.db_api import DBApi
+import service.credentials as creds
+
 
 
 logging.basicConfig(
@@ -9,7 +12,9 @@ logging.basicConfig(
     format="[%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
 )
 
-ym = YandexMail(yd_cred.DOMAIN, yd_cred.PDD_TOKEN)
+TIME = 5
+ym = YandexMail(creds.DOMAIN, creds.PDD_TOKEN)
+db = DBApi(creds.DATABASE_URL)
 
 
 def scheduled(wait_for):
@@ -18,12 +23,17 @@ def scheduled(wait_for):
         for email in ym.email_list():
             payload = ym.get_count_letters(email)
             if payload:
-                logging.info(email + '\t' + str(payload))
-                # запрос в ядро
+                logging.info(email + ' ' + str(payload))
+                user = db.get_user(email)
+                if user:
+                    if payload['unread'] != user.unread or payload['new'] != user.new:
+                        db.set_new_counters(user, unread=payload['unread'], new=payload['new'])
+                        # запрос в ядро
+                db.create_user(email, unread=payload['unread'], new=payload['new'])
         sleep(wait_for)
 
 
 if __name__ == '__main__':
     logging.info("START MAIL MODULE")
     # регистрация модуля в ядре
-    scheduled(5)
+    scheduled(TIME)

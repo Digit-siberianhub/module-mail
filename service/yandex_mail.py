@@ -12,8 +12,8 @@ logging.basicConfig(
 class YandexMail:
     def __init__(self, domain: str, pdd_token: str):
         self.host = 'https://pddimp.yandex.ru'
-        self.pdd_token = pdd_token
         self.domain = domain
+        self.headers = {'PddToken': pdd_token}
 
     def get_count_letters(self, mail) -> dict:
         """
@@ -22,46 +22,33 @@ class YandexMail:
             new: количество писем, полученных после последней проверки почтового ящика,
             unread: количество непрочитанных писем
         """
-
-        url = self.host + '/api2/admin/email/counters'
-        headers = {'PddToken': self.pdd_token}
-        query_params = {
-            'domain': self.domain,
-            'login': mail
-        }
-
-        response = requests.get(url, headers=headers, params=query_params)
-        content = response.json()
-        if response.status_code == 200 and content['success'] != 'error':
-            return content['counters']
-        
-        logging.error(response.status_code)
-        logging.error(response.content)
+        query_params = {'domain': self.domain,'login': mail}
+        content = self.request('/api2/admin/email/counters', query_params)
+        return content.get('counters')
 
     def email_list(self):
         """Получение всех почтовых ящиков"""
-        url = self.host + '/api2/admin/email/list'
-        headers = {'PddToken': self.pdd_token}
         query_params = {'domain': self.domain}
-        response = requests.get(url, headers=headers, params=query_params)
+        content = self.request('/api2/admin/email/list', query_params)
+        return self.filter_accounts(content.get("accounts"))      
+
+    def request(self, method: str, params: dict):
+        """Запрос в API яндекс почты"""
+        url = self.host + method
+        response = requests.get(url, headers=self.headers, params=params)
         content = response.json()
-        if response.status_code == 200 and content['success'] != 'error':
-            return self.filter_accounts(content.get("accounts"))
-
+        if response.status_code == 200 and content.get('success') == 'ok':
+            return content
         logging.error(response.status_code)
-        logging.error(response.content)      
+        logging.error(response.content)
+        return {}
 
-    def filter_accounts(self, accounts):
+    def filter_accounts(self, accounts: list):
         """Проверка на робота"""
-        clean_accs = []
         for acc in accounts:
             if acc['iname'].lower() != "робот":
-                clean_accs.append(self.get_valid_email(acc['login']))
-        return clean_accs
+                yield self.get_valid_email(acc['login'])
 
     def get_valid_email(self, email):
         """Проверка на почту с правильным доменом"""
-        domain = re.search("@[\w.-]+", email).group()
-        if domain.replace('@', '') == self.domain:
-            return email
-        return re.sub(r"@[\w.]+", '@' + self.domain, email)
+        return email.split('@')[0] + f'@{self.domain}'
