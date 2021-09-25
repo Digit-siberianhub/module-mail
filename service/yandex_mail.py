@@ -62,9 +62,6 @@ class YandexMail:
     def get_valid_email(self, email):
         """Проверка на почту с правильным доменом"""
         domain = re.search("@[\w.-]+", email).group()
-        print("EMAIL", email)
-        print("DOMAIN", domain)
-        print(40*"-")
         if domain.replace('@', '') == self.domain:
             return email
         return re.sub(r"@[\w.]+", '@' + self.domain, email)

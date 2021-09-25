@@ -1,4 +1,4 @@
 import os
 
-PDD_TOKEN = os.environ.get('PDD_TOKEN_YANDEX') or 'N6WURRRKN5LV4ZBL3P3OMD65C7EYKT2RUKD3SESNVNKAP54HKIIA'
-DOMAIN = os.environ.get('DOMEN_YANDEX') or 'siberian-hub.ru'
+PDD_TOKEN = os.environ.get('PDD_TOKEN_YANDEX')
+DOMAIN = os.environ.get('DOMAIN_YANDEX')
