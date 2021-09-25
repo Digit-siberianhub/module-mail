@@ -17,7 +17,7 @@ TIME = 10
 ym = YandexMail(creds.DOMAIN, creds.PDD_TOKEN)
 db = DBApi(creds.DATABASE_URL)
 core = CoreAPI(
-    'mail_module', 
+    'Почта',
     'Модуль для работы с корпоративными почтами',
     'Социальное'
 )
