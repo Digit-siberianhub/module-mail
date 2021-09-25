@@ -33,7 +33,7 @@ class DBApi:
 
     def set_new_counters(self, user, unread, new):
         user.unread, user.new = unread, new
-        db.session.commit()
+        self.session.commit()
         logging.info("Setting new counters")
 
     def create_user(self, email, unread, new):
