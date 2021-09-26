@@ -7,13 +7,12 @@ from service.core_api import CoreAPI
 import service.credentials as creds
 
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="[%(levelname)s] -  %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
 )
 
-TIME = 10
+TIME = 300
 ym = YandexMail(creds.DOMAIN, creds.PDD_TOKEN)
 db = DBApi(creds.DATABASE_URL)
 core = CoreAPI(
